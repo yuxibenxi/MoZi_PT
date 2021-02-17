@@ -90,3 +90,6 @@ https://github.com/llSourcell/tensorflow_chatbot
 4. 支持中文会话
 5. 更改loss function
 6. 支持GUI
+
+# 扩展
+用相同的语料微调了中文GPT模型，虽然数据不能分享，但是模型可以分享啊！build成docker image了，戳[这里](https://hub.docker.com/r/coranholmes/cdial-gpt)来一场甜甜的恋爱吧\(^o^)/~肉眼看一下这个GPT模型还是比之前的seq2seq+attn的模型效果要好很多。
