@@ -33,7 +33,7 @@ else:
     print("Wrong retrieve mode!!!")
     sys.exit(0)
 
-encoder, decoder, voc, pairs, embedding = initGenModel()
+encoder, decoder, voc, pairs, embedding, checkpoint = initGenModel()
 encoder.eval()
 decoder.eval()
 searcher = GreedySearchDecoder(encoder, decoder)
