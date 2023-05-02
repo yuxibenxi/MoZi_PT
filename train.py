@@ -17,7 +17,7 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
-encoder, decoder, voc, pairs, embedding = initGenModel()
+encoder, decoder, voc, pairs, embedding, checkpoint= initGenModel()
 
 if mode == "train":
     print("Training Mode starts ...")
@@ -41,8 +41,7 @@ if mode == "train":
             if isinstance(v, torch.Tensor):
                 state[k] = v.cuda()
 
-    if loadFilename:
-        checkpoint = torch.load(loadFilename)
+    if checkpoint:
         encoder_optimizer_sd = checkpoint['en_opt']
         decoder_optimizer_sd = checkpoint['de_opt']
         encoder_optimizer.load_state_dict(encoder_optimizer_sd)
@@ -53,7 +52,7 @@ if mode == "train":
     save_dir = os.path.join("data", "save")
     trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, decoder_optimizer,
                embedding, encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size,
-               print_every, save_every, clip, corpus_name, loadFilename)
+               print_every, save_every, clip, corpus_name, loadFilename,checkpoint)
 
 print("Evaluation Mode starts ...")
 # Set dropout layers to eval mode

@@ -22,7 +22,7 @@ with open(fastTextEmb, 'rb') as f:
         line = l.decode().split()
         word = line[0]
         idx += 1
-        vect = np.array(line[1:]).astype(np.float)
+        vect = np.array(line[1:]).astype(np.float64)
         vectors[word] = vect
 
 with open(vocFile, 'rb') as f:
