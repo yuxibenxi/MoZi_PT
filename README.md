@@ -1,9 +1,9 @@
 [一个姑且算是聊天机器人的教程](https://www.jianshu.com/p/e7bf16d7a33a)放了一些比较琐碎不适合放在`README`里的内容。
 
 # Requirements
-   git clone -v https://github.com/yuxibenxi/MoZi_PT.git
-   cd MoZi_PT
-   pip3 install -r requirements.txt
+    git clone -v https://github.com/yuxibenxi/MoZi_PT.git
+    cd MoZi_PT
+    pip3 install -r requirements.txt
 # 数据相关
 ## 训练语料
 声明：
