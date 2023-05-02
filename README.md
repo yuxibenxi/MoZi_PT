@@ -47,6 +47,7 @@
  - 设置`mode="evaluate"`
  - 设置`checkpoint_iter`为上次训练的次数，并设置`loadFilename`为存档地址
 2. 运行`train.py`训练模型，可与机器人对话，输入quit结束
+ - 如果训练集噪音太大loss一直波动的话可以一直减小学习率，比如1e-7
 
 ## 检索模型
 检索模型主要就是将句子表示成向量后，搜索最近邻（KNN）。实现的三个不同的模型主要在速度和准确性上稍有区别。
@@ -84,7 +85,6 @@ https://github.com/llSourcell/tensorflow_chatbot
 3. 支持载入预训练的词向量
 4. 支持中文会话
 5. 更改loss function
-6. 支持GUI
 
 # 相对于主分支
 1. 加入一些工具
