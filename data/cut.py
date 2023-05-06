@@ -1,8 +1,10 @@
+import sys
 
-a = 1000000
 
-all = open("mozi.all.tsv", "r", encoding="utf-8")
-cut = open("mozi.cut.tsv", "w", encoding="utf-8")
+a = int(sys.argv[2])
+
+all = open(sys.argv[1], "r", encoding="utf-8")
+cut = open(sys.argv[1]+".cut", "w", encoding="utf-8")
 
 for l in all.readlines():
     if a > 0:
