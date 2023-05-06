@@ -476,7 +476,7 @@ def trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, deco
             print_loss += loss
 
             # Print progress
-            if (iteration+1) % print_every == 0: 
+            if (n+1) % print_every == 0: 
                 print_loss_avg = print_loss / print_every
                 info = "{}: {:.2f}%: loss: {:.5f}".format(n,n / n_iteration*batch_size * 100,print_loss_avg)
                 print(info)
