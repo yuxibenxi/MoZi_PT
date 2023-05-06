@@ -508,10 +508,10 @@ def trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, deco
                     train_again = False
                     break
             
-            # while
-            print('Initializing ...')
-            start_iteration = 0
-            print_loss = 0
+        # while
+        print('Initializing ...')
+        start_iteration = 0
+        print_loss = 0
 
 class GreedySearchDecoder(nn.Module):
     def __init__(self, encoder, decoder):
