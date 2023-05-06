@@ -27,30 +27,30 @@ attn_model = 'dot'
 #attn_model = 'general'
 #attn_model = 'concat'
 hidden_size = 300  # embedding维数，此时使用fasttext维数即300
-encoder_n_layers = 3 # 编码器层数
-decoder_n_layers = 3 # 译码器层数
+encoder_n_layers = 4 # 编码器层数
+decoder_n_layers = 4 # 译码器层数
 
 
 # Configure training/optimization
 clip = 20.0 # 批？
 teacher_forcing_ratio = 1.0 # 教习比 0.0 - 1.0
 decoder_learning_ratio = 1.0 #编码器学习比
-n_iteration = 200000  # epoch，训练次数
-learning_rate = 0.0001 # 学习率
-dropout = 0.2 # 正则化
-batch_size = 100 # 批
-min_loss = 0.04
+n_iteration = 100000  # epoch，训练次数
+learning_rate = 1e-3 # 学习率
+dropout = 0.0 # 正则化
+batch_size = 200 # 批
+min_loss = 0.0
 
 print_every = 1
-save_every = 5000
+save_every = 500
 
 # 运行时参数
 lang = "cn"  # cn为中文，填写其他则默认为英文
 corpus_name = "mozi"
 # corpus_name = "cornell movie-dialogs corpus"
-checkpoint_iter = 0  # 上次保存模型时的训练步数
+checkpoint_iter = None  # 上次保存模型时的训练步数
 loadFilename = None  # 初始训练时设置为None
-#"""
+"""
 loadFilename = os.path.join('data/save', model_name, corpus_name,
                              '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size),
                              'checkpoint.tar')
@@ -61,7 +61,7 @@ embeddingFile = os.path.join('data', 'embedding_bq.pkl')  # 从fastText的embedd
 sentEmbFile  = os.path.join('data', 'sent_emb.pkl')  # 存储计算好的句子向量文件
 vocFile = os.path.join('data', 'voc_bq.pkl')
 pairsFile = os.path.join('data', 'pairs_bq.pkl')
-dialogFile = os.path.join('data', 'mozi.cut.tsv')
+dialogFile = os.path.join('data', 'mozi3.tsv')
 annoyIdxFile = os.path.join('data', 'sent_emb_idx.ann')
 ballTreeIdxFile = os.path.join('data', 'sent_imb_idx.tre')
 mode = "train"
