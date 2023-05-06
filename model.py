@@ -463,7 +463,7 @@ def trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, deco
     # Training loop
     print("Training...")
     log = open("data/log","a")
-    for iteration in range(start_iteration, n_iteration):
+    for iteration in range(start_iteration//batch_size, n_iteration//batch_size):
         training_batch = batch2TrainData(voc, training_batches[iteration])
         # Extract fields from batch
         input_variable, lengths, target_variable, mask, max_target_len = training_batch
