@@ -18,7 +18,6 @@ import warnings
 warnings.filterwarnings("ignore")
 
 encoder, decoder, voc, pairs, embedding, checkpoint= initGenModel()
-
 if mode == "train":
     print("Training Mode starts ...")
     # Ensure dropout layers are in train mode
@@ -50,21 +49,23 @@ if mode == "train":
     # Run training iterations
     print("Starting Training!")
     save_dir = os.path.join("data", "save")
-    trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, decoder_optimizer,
-               embedding, encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size,
-               print_every, save_every, clip, corpus_name, loadFilename,checkpoint)
+    while True:
+        trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, decoder_optimizer,
+                   embedding, encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size,
+                   print_every, save_every, clip, corpus_name, loadFilename,checkpoint)
 
-print("Evaluation Mode starts ...")
-# Set dropout layers to eval mode
-encoder.eval()
-decoder.eval()
+else:
+    print("Evaluation Mode starts ...")
+    # Set dropout layers to eval mode
+    encoder.eval()
+    decoder.eval()
 
-# Initialize search module
-searcher = GreedySearchDecoder(encoder, decoder)
+    # Initialize search module
+    searcher = GreedySearchDecoder(encoder, decoder)
 
-# 结巴分词准备
-init = "".join(list(jieba.cut("聊天系统初始化成功")))
+    # 结巴分词准备
+    init = "".join(list(jieba.cut("聊天系统初始化成功")))
 
-# Begin chatting (uncomment and run the following line to begin)
-evaluateInput(searcher, voc)
+    # Begin chatting (uncomment and run the following line to begin)
+    evaluateInput(searcher, voc)
 
