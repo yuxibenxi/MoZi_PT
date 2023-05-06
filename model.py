@@ -30,15 +30,13 @@ import torch.nn as nn
 from torch import optim
 import torch.nn.functional as F
 
-
 class Voc:
     def __init__(self, name):
         self.name = name
         self.trimmed = False
         self.word2index = {}
         self.word2count = {}
-        self.index2word = {PAD_token: "PAD", SOS_token: "SOS",
-                           EOS_token: "EOS", Unk_token: "UNK"}
+        self.index2word = {PAD_token: "PAD", SOS_token: "SOS", EOS_token: "EOS", Unk_token: "UNK"}
         self.num_words = 4  # Count SOS, EOS, PAD, UNK
 
     def addSentence(self, sentence):
@@ -67,15 +65,13 @@ class Voc:
                 keep_words.append(k)
 
         print('keep_words {} / {} = {:.4f}'.format(
-            len(keep_words), len(self.word2index), len(
-                keep_words) / len(self.word2index)
+            len(keep_words), len(self.word2index), len(keep_words) / len(self.word2index)
         ))
 
         # Reinitialize dictionaries
         self.word2index = {}
         self.word2count = {}
-        self.index2word = {PAD_token: "PAD", SOS_token: "SOS",
-                           EOS_token: "EOS", Unk_token: "UNK"}
+        self.index2word = {PAD_token: "PAD", SOS_token: "SOS", EOS_token: "EOS", Unk_token: "UNK"}
         self.num_words = 4  # Count default tokens
 
         for word in keep_words:
@@ -248,15 +244,13 @@ class EncoderRNN(nn.Module):
         # Convert word indexes to embeddings
         embedded = self.embedding(input_seq)
         # Pack padded batch of sequences for RNN module
-        packed = torch.nn.utils.rnn.pack_padded_sequence(
-            embedded, input_lengths)
+        packed = torch.nn.utils.rnn.pack_padded_sequence(embedded, input_lengths)
         # Forward pass through GRU
         outputs, hidden = self.gru(packed, hidden)
         # Unpack padding
         outputs, _ = torch.nn.utils.rnn.pad_packed_sequence(outputs)
         # Sum bidirectional GRU outputs
-        outputs = outputs[:, :, :self.hidden_size] + \
-            outputs[:, :, self.hidden_size:]
+        outputs = outputs[:, :, :self.hidden_size] + outputs[:, :, self.hidden_size:]
 
         # outputs：GRU最后一个隐藏层的输出特征(双向输出之和）; shape = (max_length，batch_size，hidden_size）
         # hidden：从GRU更新隐藏状态; shape =(n_layers x num_directions，batch_size，hidden_size）
@@ -271,8 +265,7 @@ class Attn(torch.nn.Module):
         super(Attn, self).__init__()
         self.method = method
         if self.method not in ['dot', 'general', 'concat']:  # 点乘，加权点乘，加和
-            raise ValueError(
-                self.method, "is not an appropriate attention method.")
+            raise ValueError(self.method, "is not an appropriate attention method.")
         self.hidden_size = hidden_size
         if self.method == 'general':
             self.attn = torch.nn.Linear(self.hidden_size, hidden_size)
@@ -291,8 +284,7 @@ class Attn(torch.nn.Module):
         return torch.sum(hidden * energy, dim=2)
 
     def concat_score(self, hidden, encoder_output):
-        energy = self.attn(torch.cat(
-            (hidden.expand(encoder_output.size(0), -1, -1), encoder_output), 2)).tanh()
+        energy = self.attn(torch.cat((hidden.expand(encoder_output.size(0), -1, -1), encoder_output), 2)).tanh()
         return torch.sum(self.v * energy, dim=2)
 
     # 输入是上一个时刻的隐状态hidden和所有时刻的Encoder的输出encoder_outputs
@@ -328,8 +320,7 @@ class LuongAttnDecoderRNN(nn.Module):
         # Define layers
         self.embedding = embedding
         self.embedding_dropout = nn.Dropout(dropout)
-        self.gru = nn.GRU(hidden_size, hidden_size, n_layers,
-                          dropout=(0 if n_layers == 1 else dropout))
+        self.gru = nn.GRU(hidden_size, hidden_size, n_layers, dropout=(0 if n_layers == 1 else dropout))
         self.concat = nn.Linear(hidden_size * 2, hidden_size)
         self.out = nn.Linear(hidden_size, output_size)
 
@@ -376,8 +367,7 @@ def maskNLLLoss(inp, target, mask):
         mask = torch.ones_like(mask)
     # 计算实际的词的个数，因为padding是0，非padding是1，因此sum就可以得到词的个数
     nTotal = mask.sum()
-    crossEntropy = - \
-        torch.log(torch.gather(inp, 1, target.view(-1, 1)).squeeze(1))
+    crossEntropy = -torch.log(torch.gather(inp, 1, target.view(-1, 1)).squeeze(1))
     loss = crossEntropy.masked_select(mask).mean()
     loss = loss.to(device)
     return loss, nTotal.item()
@@ -391,7 +381,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
 
     # Set device options
     input_variable = input_variable.to(device)
-    lengths = lengths  # .to(device)
+    lengths = lengths#.to(device)
     target_variable = target_variable.to(device)
     mask = mask.to(device)
 
@@ -422,8 +412,7 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
             # Teacher forcing: 下一个时刻的输入是当前正确答案
             decoder_input = target_variable[t].view(1, -1)
             # Calculate and accumulate loss
-            mask_loss, nTotal = maskNLLLoss(
-                decoder_output, target_variable[t], mask[t])  # nTotal指这一个batch有几个有效词
+            mask_loss, nTotal = maskNLLLoss(decoder_output, target_variable[t], mask[t])  # nTotal指这一个batch有几个有效词
             loss += mask_loss
             print_losses.append(mask_loss.item() * nTotal)
             n_totals += nTotal
@@ -433,14 +422,11 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
                 decoder_input, decoder_hidden, encoder_outputs
             )
             # 不是teacher forcing: 下一个时刻的输入是当前模型预测概率最高的值（topi为一个存有index的list）
-            # decoder_output是当前时刻输出每个词的概率，shape是(batch_size, voc.num_words)
-            _, topi = decoder_output.topk(1)
-            decoder_input = torch.LongTensor(
-                [[topi[i][0] for i in range(batch_size)]])  # topk的shape是(batch_size, 1)
+            _, topi = decoder_output.topk(1)  # decoder_output是当前时刻输出每个词的概率，shape是(batch_size, voc.num_words)
+            decoder_input = torch.LongTensor([[topi[i][0] for i in range(batch_size)]])  # topk的shape是(batch_size, 1)
             decoder_input = decoder_input.to(device)
             # Calculate and accumulate loss
-            mask_loss, nTotal = maskNLLLoss(
-                decoder_output, target_variable[t], mask[t])
+            mask_loss, nTotal = maskNLLLoss(decoder_output, target_variable[t], mask[t])
             loss += mask_loss
             print_losses.append(mask_loss.item() * nTotal)
             n_totals += nTotal
@@ -465,21 +451,20 @@ def trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, deco
                corpus_name, loadFilename, checkpoint):
     # Load batches for each iteration
     # 随机选择n_iteration个batch的数据(pair)
-    training_batches = [batch2TrainData(voc, [random.choice(pairs) for _ in range(batch_size)])
-                        for _ in range(n_iteration)]
+    training_batches = [pairs[n*batch_size:(n+1)*batch_size]for n in range(n_iteration//batch_size)]
 
     # Initializations
     print('Initializing ...')
-    start_iteration = 1
+    start_iteration = 0
     print_loss = 0
     if checkpoint and (checkpoint_iter == None):
-        start_iteration = checkpoint['iteration'] + 1
+        start_iteration = checkpoint['iteration']
 
     # Training loop
     print("Training...")
-    log = open("data/log", "a")
-    for iteration in range(start_iteration, n_iteration + 1):
-        training_batch = training_batches[iteration - 1]
+    log = open("data/log","a")
+    for iteration in range(start_iteration, n_iteration):
+        training_batch = batch2TrainData(voc, training_batches[iteration])
         # Extract fields from batch
         input_variable, lengths, target_variable, mask, max_target_len = training_batch
 
@@ -489,11 +474,9 @@ def trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, deco
         print_loss += loss
 
         # Print progress
-        if iteration % print_every == 0:
+        if (iteration+1) % print_every == 0:
             print_loss_avg = print_loss / print_every
-            info = "{}: {:.2f}%: loss: {:.5f}".format(iteration,
-                                                      iteration / n_iteration * 100,
-                                                      print_loss_avg)
+            info = "{}: {:.2f}%: loss: {:.5f}".format(iteration,iteration / n_iteration * 100,print_loss_avg)
             print(info)
             log.write(info+"\n")
             if ("nan" in info) or ("inf" in info):
@@ -502,7 +485,7 @@ def trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, deco
             print_loss = 0
 
         # Save checkpoint
-        if (iteration % save_every == 0) or (loss < min_loss):
+        if ((iteration+1) % save_every == 0) or (loss < min_loss):
             directory = os.path.join(save_dir, model_name, corpus_name,
                                      '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size))
             if not os.path.exists(directory):
@@ -521,7 +504,7 @@ def trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, deco
             print("saved")
             if (loss < min_loss):
                 break
-
+            
 
 class GreedySearchDecoder(nn.Module):
     def __init__(self, encoder, decoder):
@@ -533,19 +516,16 @@ class GreedySearchDecoder(nn.Module):
         # Forward input through encoder model
         encoder_outputs, encoder_hidden = self.encoder(input_seq, input_length)
         # Prepare encoder's final hidden layer to be first hidden input to the decoder
-        # TODO: NEEDS CHECK HERE!!!
-        decoder_hidden = encoder_hidden[:self.decoder.n_layers]
+        decoder_hidden = encoder_hidden[:self.decoder.n_layers]  # TODO: NEEDS CHECK HERE!!!
         # Initialize decoder input with SOS_token
-        decoder_input = torch.ones(
-            1, 1, device=device, dtype=torch.long) * SOS_token
+        decoder_input = torch.ones(1, 1, device=device, dtype=torch.long) * SOS_token
         # Initialize tensors to append decoded words to
         all_tokens = torch.zeros([0], device=device, dtype=torch.long)
         all_scores = torch.zeros([0], device=device)
         # Iteratively decode one word token at a time
         for _ in range(max_length):
             # Forward pass through decoder
-            decoder_output, decoder_hidden = self.decoder(
-                decoder_input, decoder_hidden, encoder_outputs)
+            decoder_output, decoder_hidden = self.decoder(decoder_input, decoder_hidden, encoder_outputs)
             # decoder_outputs是(batch=1, vob_size)
             # 使用max返回概率最大的词和得分
             decoder_scores, decoder_input = torch.max(decoder_output, dim=1)
@@ -560,7 +540,7 @@ class GreedySearchDecoder(nn.Module):
 
 
 def evaluate(searcher, voc, sentence, max_length=MAX_LENGTH):
-    # Format input sentence as a batch
+    ### Format input sentence as a batch
     # words -> indexes
     indexes_batch = [indexesFromSentence(voc, sentence)]
     # Create lengths tensor
@@ -602,8 +582,7 @@ def evaluateInput(searcher, voc):
         # Get input sentence
         input_sentence = input('> ')
         # Check if it is quit case
-        if input_sentence == 'q' or input_sentence == 'quit':
-            break
+        if input_sentence == 'q' or input_sentence == 'quit': break
         res = generateAnswer(input_sentence, searcher, voc)
         if lang == "cn":
             print('学长: ', res)
@@ -624,8 +603,7 @@ def generateAnswer(query, searcher, voc):
     # Evaluate sentence
     output_words = evaluate(searcher, voc, input_sentence)
     # Format and print response sentence
-    output_words[:] = [x for x in output_words if not (
-        x == 'EOS' or x == 'PAD')]
+    output_words[:] = [x for x in output_words if not (x == 'EOS' or x == 'PAD')]
     if lang == "cn":
         if masked:
             res = postProcessOutput(output_words)
@@ -642,12 +620,12 @@ def initGenModel():
         voc = pickle.load(f)
     with open(pairsFile, 'rb') as f:
         pairs = pickle.load(f)
-
+    
     checkpoint = None
     # Load model if a loadFilename is provided
     if loadFilename:
         # If loading on same machine the model was trained on
-        checkpoint = torch.load(loadFilename, map_location=device)
+        checkpoint = torch.load(loadFilename)
         # If loading a model trained on GPU to CPU
         # checkpoint = torch.load(loadFilename, map_location=torch.device('cpu'))
         encoder_sd = checkpoint['en']
@@ -665,14 +643,12 @@ def initGenModel():
     elif embeddingFile:
         with open(embeddingFile, 'rb') as f:
             emb = pickle.load(f)
-        # 不转换会报错TypeError: 'int' object is not callable
-        emb = torch.from_numpy(emb)
+        emb = torch.from_numpy(emb)  # 不转换会报错TypeError: 'int' object is not callable
         embedding.load_state_dict({'weight': emb})
 
     # Initialize encoder & decoder models
     encoder = EncoderRNN(hidden_size, embedding, encoder_n_layers, dropout)
-    decoder = LuongAttnDecoderRNN(
-        attn_model, embedding, hidden_size, voc.num_words, decoder_n_layers, dropout)
+    decoder = LuongAttnDecoderRNN(attn_model, embedding, hidden_size, voc.num_words, decoder_n_layers, dropout)
     if loadFilename:
         encoder.load_state_dict(encoder_sd)
         decoder.load_state_dict(decoder_sd)
