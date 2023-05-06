@@ -451,8 +451,9 @@ def trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, deco
                corpus_name, loadFilename, checkpoint):
     # Load batches for each iteration
     # 随机选择n_iteration个batch的数据(pair)
-    training_batches = [pairs[n*batch_size:(n+1)*batch_size]for n in range(n_iteration//batch_size)]
+    training_batches = [batch2TrainData(voc, pairs[n*batch_size:(n+1)*batch_size])for n in range(n_iteration//batch_size)]
 
+    print("Have {} batches".format(len(training_batches)))
     # Initializations
     print('Initializing ...')
     start_iteration = 0
@@ -463,48 +464,54 @@ def trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, deco
     # Training loop
     print("Training...")
     log = open("data/log","a")
-    for iteration in range(start_iteration//batch_size, n_iteration//batch_size):
-        training_batch = batch2TrainData(voc, training_batches[iteration])
-        # Extract fields from batch
-        input_variable, lengths, target_variable, mask, max_target_len = training_batch
+    train_again = True
+    while train_again:
+        for n in range(start_iteration//batch_size, n_iteration//batch_size):
+            training_batch = training_batches[n] # 取批
+            # Extract fields from batch
+            input_variable, lengths, target_variable, mask, max_target_len = training_batch
 
-        # Run a training iteration with batch
-        loss = train(input_variable, lengths, target_variable, mask, max_target_len, encoder,
-                     decoder, embedding, encoder_optimizer, decoder_optimizer, batch_size, clip)
-        print_loss += loss
+            # Run a training iteration with batch
+            loss = train(input_variable, lengths, target_variable, mask, max_target_len, encoder,decoder, embedding, encoder_optimizer, decoder_optimizer, batch_size, clip)
+            print_loss += loss
 
-        # Print progress
-        if (iteration+1) % print_every == 0:
-            print_loss_avg = print_loss / print_every
-            info = "{}: {:.2f}%: loss: {:.5f}".format(iteration,iteration / n_iteration * 100,print_loss_avg)
-            print(info)
-            log.write(info+"\n")
-            if ("nan" in info) or ("inf" in info):
-                print("nan or inf !!!")
-                exit()
-            print_loss = 0
+            # Print progress
+            if (iteration+1) % print_every == 0: 
+                print_loss_avg = print_loss / print_every
+                info = "{}: {:.2f}%: loss: {:.5f}".format(n,n / n_iteration*batch_size * 100,print_loss_avg)
+                print(info)
+                log.write(info+"\n")
+                if ("nan" in info) or ("inf" in info):
+                    print("nan or inf !!!")
+                    exit()
+                print_loss = 0
 
-        # Save checkpoint
-        if ((iteration+1) % save_every == 0) or (loss < min_loss):
-            directory = os.path.join(save_dir, model_name, corpus_name,
-                                     '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size))
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-            torch.save({
-                'iteration': iteration,
-                'en': encoder.state_dict(),
-                'de': decoder.state_dict(),
-                'en_opt': encoder_optimizer.state_dict(),
-                'de_opt': decoder_optimizer.state_dict(),
-                'loss': loss,
-                'voc_dict': voc.__dict__,
-                'embedding': embedding.state_dict()
-            }, os.path.join(directory, 'checkpoint.tar'))
-            log.flush()
-            print("saved")
-            if (loss < min_loss):
-                break
+            # Save checkpoint
+            if ((n+1) % save_every == 0) or (loss < min_loss):
+                directory = os.path.join(save_dir, model_name, corpus_name,
+                                         '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size))
+                if not os.path.exists(directory):
+                    os.makedirs(directory)
+                torch.save({
+                    'iteration': n *batch_size,
+                    'en': encoder.state_dict(),
+                    'de': decoder.state_dict(),
+                    'en_opt': encoder_optimizer.state_dict(),
+                    'de_opt': decoder_optimizer.state_dict(),
+                    'loss': loss,
+                    'voc_dict': voc.__dict__,
+                    'embedding': embedding.state_dict()
+                }, os.path.join(directory, 'checkpoint.tar'))
+                log.flush()
+                print("saved")
+                if (loss < min_loss):
+                    train_again = False
+                    break
             
+            # while
+            print('Initializing ...')
+            start_iteration = 0
+            print_loss = 0
 
 class GreedySearchDecoder(nn.Module):
     def __init__(self, encoder, decoder):
