@@ -8,6 +8,8 @@
 """
 
 import os
+import time
+import random
 import torch
 
 
@@ -17,12 +19,12 @@ PAD_token = 0  # 用于填充短句
 SOS_token = 1  # 句头标记
 EOS_token = 2  # 句尾标记
 Unk_token = 3  # 未知标记
-MAX_LENGTH = 64  # 要考虑的最大句子长度
+MAX_LENGTH = 150  # 要考虑的最大句子长度
 MIN_COUNT = 3  # 修剪的最小字数阈值
 
 
 # 模型参数
-model_name = 'mozi_model'
+model_name = 'mozi_large'
 attn_model = 'dot'
 #attn_model = 'general'
 #attn_model = 'concat'
@@ -35,11 +37,11 @@ decoder_n_layers = 4 # 译码器层数
 clip = 20.0 # 批？
 teacher_forcing_ratio = 1.0 # 教习比 0.0 - 1.0
 decoder_learning_ratio = 1.0 #编码器学习比
-n_iteration = 100000  # epoch，训练次数
-learning_rate = 1e-3 # 学习率
-dropout = 0.0 # 正则化
-batch_size = 200 # 批
-min_loss = 0.0
+n_iteration = 1000000  # epoch，训练次数
+learning_rate = 1e-4 # 学习率
+dropout = 0.1 # 正则化
+batch_size = 100 # 批
+min_loss = 0.04
 
 print_every = 1
 save_every = 500
@@ -48,9 +50,8 @@ save_every = 500
 lang = "cn"  # cn为中文，填写其他则默认为英文
 corpus_name = "mozi"
 # corpus_name = "cornell movie-dialogs corpus"
-checkpoint_iter = None  # 上次保存模型时的训练步数
 loadFilename = None  # 初始训练时设置为None
-"""
+#"""
 loadFilename = os.path.join('data/save', model_name, corpus_name,
                              '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size),
                              'checkpoint.tar')
@@ -62,6 +63,7 @@ sentEmbFile  = os.path.join('data', 'sent_emb.pkl')  # 存储计算好的句子�
 vocFile = os.path.join('data', 'voc_bq.pkl')
 pairsFile = os.path.join('data', 'pairs_bq.pkl')
 dialogFile = os.path.join('data', 'mozi3.tsv')
+#dialogFile = os.path.join('data', 'douban.tsv')
 annoyIdxFile = os.path.join('data', 'sent_emb_idx.ann')
 ballTreeIdxFile = os.path.join('data', 'sent_imb_idx.tre')
 mode = "train"
@@ -82,3 +84,4 @@ else:
     device = torch.device("cpu")
     torch.set_num_threads(16)
 
+random.seed(time.time())
