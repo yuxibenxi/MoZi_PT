@@ -446,11 +446,10 @@ def train(input_variable, lengths, target_variable, mask, max_target_len, encode
     return sum(print_losses) / n_totals
 
 
-def trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, decoder_optimizer, embedding,
-               encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size, print_every, save_every, clip,
-               corpus_name, loadFilename, checkpoint):
+def trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, decoder_optimizer, embedding,encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size, print_every, save_every, clip,corpus_name, loadFilename, checkpoint):
     # Load batches for each iteration
     # 随机选择n_iteration个batch的数据(pair)
+    random.shuffle(pairs)
     training_batches = [batch2TrainData(voc, pairs[n*batch_size:(n+1)*batch_size])for n in range(n_iteration//batch_size)]
 
     print("Have {} batches".format(len(training_batches)))
@@ -458,16 +457,17 @@ def trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, deco
     print('Initializing ...')
     start_iteration = 0
     print_loss = 0
-    if checkpoint and (checkpoint_iter == None):
-        start_iteration = checkpoint['iteration']
-
+    directory = os.path.join(save_dir, model_name, corpus_name,'{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size))
+    if not os.path.exists(directory):
+        os.makedirs(directory)
     # Training loop
     print("Training...")
-    log = open("data/log","a")
+    log = open(os.path.join(directory, 'checkpoint.tar.log'),"a")
     train_again = True
     while train_again:
-        for n in range(start_iteration//batch_size, n_iteration//batch_size):
-            training_batch = training_batches[n] # 取批
+        print(n_iteration//batch_size)
+        for n in range(1, n_iteration//batch_size+1):
+            training_batch = training_batches[n-1] # 取批
             # Extract fields from batch
             input_variable, lengths, target_variable, mask, max_target_len = training_batch
 
@@ -476,7 +476,7 @@ def trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, deco
             print_loss += loss
 
             # Print progress
-            if (n+1) % print_every == 0: 
+            if n % print_every == 0: 
                 print_loss_avg = print_loss / print_every
                 info = "{}: {:.2f}%: loss: {:.5f}".format(n,n / n_iteration*batch_size * 100,print_loss_avg)
                 print(info)
@@ -487,11 +487,7 @@ def trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, deco
                 print_loss = 0
 
             # Save checkpoint
-            if ((n+1) % save_every == 0) or (loss < min_loss):
-                directory = os.path.join(save_dir, model_name, corpus_name,
-                                         '{}-{}_{}'.format(encoder_n_layers, decoder_n_layers, hidden_size))
-                if not os.path.exists(directory):
-                    os.makedirs(directory)
+            if (n % save_every == 0) or (loss < min_loss):
                 torch.save({
                     'iteration': n *batch_size,
                     'en': encoder.state_dict(),
@@ -509,6 +505,11 @@ def trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, deco
                     break
             
         # while
+        random.shuffle(pairs)
+        training_batches = [batch2TrainData(voc, pairs[n*batch_size:(n+1)*batch_size])for n in range(n_iteration//batch_size)]
+
+        print("Have {} batches".format(len(training_batches)))
+        # Initializations
         print('Initializing ...')
         start_iteration = 0
         print_loss = 0
