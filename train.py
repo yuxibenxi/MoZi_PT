@@ -49,10 +49,7 @@ if mode == "train":
     # Run training iterations
     print("Starting Training!")
     save_dir = os.path.join("data", "save")
-    while True:
-        trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, decoder_optimizer,
-                   embedding, encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size,
-                   print_every, save_every, clip, corpus_name, loadFilename,checkpoint)
+    trainIters(model_name, voc, pairs, encoder, decoder, encoder_optimizer, decoder_optimizer,embedding, encoder_n_layers, decoder_n_layers, save_dir, n_iteration, batch_size,print_every, save_every, clip, corpus_name, loadFilename,checkpoint)
 
 else:
     print("Evaluation Mode starts ...")
